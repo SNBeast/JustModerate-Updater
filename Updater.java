@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.channels.*;
 import java.nio.file.*;
+import java.util.*;
 import java.util.regex.*;
 
 public class Updater {
@@ -24,7 +25,7 @@ public class Updater {
     }
     public static void main (String[] args) throws Exception {
         if (args.length == 0) {
-            System.out.println("Usage: java Updater token");
+            System.out.println("Usage: java Updater token [hostAuthorizedUsers...]");
             System.exit(0);
         }
 
@@ -45,7 +46,13 @@ public class Updater {
         }
 
         while (true) {
-            int retVal = new ProcessBuilder(new String[] {"java", "-jar", "JustModerate.jar", args[0], "--updater-launch"}).inheritIO().start().waitFor();
+            String[] baseCommand = new String[] {"java", "-jar", "JustModerate.jar", args[0], "--updater-launch"};
+            String[] hostAuthorizedUsers = Arrays.copyOfRange(args, 1, args.length);
+
+            String[] fullCommand = Arrays.copyOf(baseCommand, baseCommand.length + hostAuthorizedUsers.length);
+            System.arraycopy(hostAuthorizedUsers, 0, fullCommand, baseCommand.length, hostAuthorizedUsers.length);
+
+            int retVal = new ProcessBuilder(fullCommand).inheritIO().start().waitFor();
             if (retVal != 1) {
                 System.exit(retVal);
             }
